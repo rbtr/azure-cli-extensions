@@ -336,7 +336,7 @@ class AKSPreviewAgentPoolContext(AKSAgentPoolContext):
             ))
         return port_ranges
 
-    def get_enable_managed_dranet(self) -> bool:
+    def get_enable_managed_dranet(self) -> Union[bool, None]:
         """Obtain the value of enable_managed_dranet."""
         return self.raw_param.get("enable_managed_dranet")
 
@@ -1516,9 +1516,10 @@ class AKSPreviewAgentPoolAddDecorator(AKSAgentPoolAddDecorator):
         if secondary_nics is not None:
             agentpool.network_profile.secondary_network_interfaces = secondary_nics
 
-        if self.context.get_enable_managed_dranet():
+        enable_managed_dranet = self.context.get_enable_managed_dranet()
+        if enable_managed_dranet is not None:
             agentpool.network_profile.dranet = self.models.DRANETProfile(
-                mode="Managed"
+                mode="Managed" if enable_managed_dranet else "Unmanaged"
             )
 
         return agentpool
@@ -2063,16 +2064,19 @@ class AKSPreviewAgentPoolUpdateDecorator(AKSAgentPoolUpdateDecorator):
         enable_managed_dranet = self.context.get_enable_managed_dranet()
         node_public_ip_prefix_ids = self.context.get_node_public_ip_prefix_ids()
         if not agentpool.network_profile and (
-            asg_ids is not None or allowed_host_ports is not None or enable_managed_dranet or node_public_ip_prefix_ids
+            asg_ids is not None
+            or allowed_host_ports is not None
+            or enable_managed_dranet is not None
+            or node_public_ip_prefix_ids
         ):
             agentpool.network_profile = self.models.AgentPoolNetworkProfile()  # pylint: disable=no-member
         if asg_ids is not None:
             agentpool.network_profile.application_security_groups = asg_ids
         if allowed_host_ports is not None:
             agentpool.network_profile.allowed_host_ports = allowed_host_ports
-        if enable_managed_dranet:
+        if enable_managed_dranet is not None:
             agentpool.network_profile.dranet = self.models.DRANETProfile(
-                mode="Managed"
+                mode="Managed" if enable_managed_dranet else "Unmanaged"
             )
         if node_public_ip_prefix_ids:
             agentpool.network_profile.node_public_ip_prefix_i_ds = node_public_ip_prefix_ids

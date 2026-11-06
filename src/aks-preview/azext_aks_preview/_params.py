@@ -2630,7 +2630,7 @@ def load_arguments(self, _):
         )
         c.argument(
             "enable_managed_dranet",
-            action="store_true",
+            arg_type=get_three_state_flag(),
             is_preview=True,
         )
         # prepared image specification
@@ -2711,7 +2711,7 @@ def load_arguments(self, _):
         )
         c.argument(
             "enable_managed_dranet",
-            action="store_true",
+            arg_type=get_three_state_flag(),
             is_preview=True,
         )
         c.argument(

@@ -256,6 +256,15 @@ class AKSPreviewAgentPoolContextCommonTestCase(unittest.TestCase):
         self.assertEqual(ctx_2.get_enable_artifact_streaming(), None)
 
     def common_get_enable_managed_dranet(self):
+        ctx_0 = AKSPreviewAgentPoolContext(
+            self.cmd,
+            AKSAgentPoolParamDict({}),
+            self.models,
+            DecoratorMode.CREATE,
+            self.agentpool_decorator_mode,
+        )
+        self.assertIsNone(ctx_0.get_enable_managed_dranet())
+
         ctx_1 = AKSPreviewAgentPoolContext(
             self.cmd,
             AKSAgentPoolParamDict({"enable_managed_dranet": False}),
@@ -2304,6 +2313,18 @@ class AKSPreviewAgentPoolAddDecoratorCommonTestCase(unittest.TestCase):
         self.assertEqual(dec_agentpool_1, ground_truth_agentpool_1)
 
     def common_set_up_managed_dranet(self):
+        dec_0 = AKSPreviewAgentPoolAddDecorator(
+            self.cmd,
+            self.client,
+            {"enable_managed_dranet": None},
+            self.resource_type,
+            self.agentpool_decorator_mode,
+        )
+        agentpool_0 = self.create_initialized_agentpool_instance(restore_defaults=False)
+        dec_0.context.attach_agentpool(agentpool_0)
+        dec_agentpool_0 = dec_0.set_up_agentpool_network_profile(agentpool_0)
+        self.assertIsNone(dec_agentpool_0.network_profile.dranet)
+
         dec_1 = AKSPreviewAgentPoolAddDecorator(
             self.cmd,
             self.client,
@@ -2314,7 +2335,7 @@ class AKSPreviewAgentPoolAddDecoratorCommonTestCase(unittest.TestCase):
         agentpool_1 = self.create_initialized_agentpool_instance(restore_defaults=False)
         dec_1.context.attach_agentpool(agentpool_1)
         dec_agentpool_1 = dec_1.set_up_agentpool_network_profile(agentpool_1)
-        self.assertIsNone(dec_agentpool_1.network_profile.dranet)
+        self.assertEqual(dec_agentpool_1.network_profile.dranet.mode, "Unmanaged")
 
         dec_2 = AKSPreviewAgentPoolAddDecorator(
             self.cmd,
@@ -3355,6 +3376,22 @@ class AKSPreviewAgentPoolUpdateDecoratorCommonTestCase(unittest.TestCase):
             dec_4.update_artifact_streaming(agentpool_3)
 
     def common_update_managed_dranet(self):
+        dec_0 = AKSPreviewAgentPoolUpdateDecorator(
+            self.cmd,
+            self.client,
+            {"enable_managed_dranet": None},
+            self.resource_type,
+            self.agentpool_decorator_mode,
+        )
+        agentpool_0 = self.create_initialized_agentpool_instance(
+            network_profile=self.models.AgentPoolNetworkProfile(
+                dranet=self.models.DRANETProfile(mode="Managed")
+            )
+        )
+        dec_0.context.attach_agentpool(agentpool_0)
+        dec_agentpool_0 = dec_0.update_network_profile(agentpool_0)
+        self.assertEqual(dec_agentpool_0.network_profile.dranet.mode, "Managed")
+
         dec_1 = AKSPreviewAgentPoolUpdateDecorator(
             self.cmd,
             self.client,
@@ -3369,7 +3406,7 @@ class AKSPreviewAgentPoolUpdateDecoratorCommonTestCase(unittest.TestCase):
         )
         dec_1.context.attach_agentpool(agentpool_1)
         dec_agentpool_1 = dec_1.update_network_profile(agentpool_1)
-        self.assertEqual(dec_agentpool_1.network_profile.dranet.mode, "Managed")
+        self.assertEqual(dec_agentpool_1.network_profile.dranet.mode, "Unmanaged")
 
         dec_2 = AKSPreviewAgentPoolUpdateDecorator(
             self.cmd,
@@ -3382,6 +3419,18 @@ class AKSPreviewAgentPoolUpdateDecoratorCommonTestCase(unittest.TestCase):
         dec_2.context.attach_agentpool(agentpool_2)
         dec_agentpool_2 = dec_2.update_network_profile(agentpool_2)
         self.assertEqual(dec_agentpool_2.network_profile.dranet.mode, "Managed")
+
+        dec_3 = AKSPreviewAgentPoolUpdateDecorator(
+            self.cmd,
+            self.client,
+            {"enable_managed_dranet": False},
+            self.resource_type,
+            self.agentpool_decorator_mode,
+        )
+        agentpool_3 = self.create_initialized_agentpool_instance()
+        dec_3.context.attach_agentpool(agentpool_3)
+        dec_agentpool_3 = dec_3.update_network_profile(agentpool_3)
+        self.assertEqual(dec_agentpool_3.network_profile.dranet.mode, "Unmanaged")
 
     def common_update_node_public_ip_prefix_ids(self):
         v4 = "/subscriptions/1234/resourceGroups/rg/providers/Microsoft.Network/publicIPPrefixes/v4"

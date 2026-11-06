@@ -11,6 +11,7 @@ To release a new version, please select a new version number (usually plus 1 to 
 
 Pending
 +++++++
+* `az aks nodepool add/update`: Allow `--enable-managed-dranet` to take `true` or `false` so Managed DRANET can be disabled on an existing node pool.
 
 22.0.0b16
 +++++++++
